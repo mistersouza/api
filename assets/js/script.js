@@ -28,10 +28,22 @@ const getStatus = async() => {
     }
 }
 
+const parseForm = (form) => {
+    let options = [];
+
+    for (let entry of form.entries()) {
+        if (entry[0] === 'options') {
+            options.push(entry[1]);
+        }
+    }
+    form.delete('options');
+    form.append('options', options.join());
+}
+
 const handleSubmit = async(event) => {
     event.preventDefault(); 
 
-    const form = new FormData(document.querySelector('#checks')); 
+    const form = parseForm(new FormData(document.querySelector('#checks'))); 
 
     try {
         const response = await fetch(API_URL, {

@@ -22,7 +22,10 @@ const getStatus = async() => {
         const data = await response.json()
 
         if (response.ok) displayStatus(data)
-        if (!response.ok) throw new Error(data.error)
+        if (!response.ok) {
+            displayException(data)
+            throw new Error(data.error)
+        }
     } catch (error) {
         console.error({ error })
     }
@@ -53,10 +56,14 @@ const handleSubmit = async(event) => {
             },
             body: form,
         })
+
         const data = await response.json();
 
         if (response.ok) displayErrors(data); 
-        if (!response.ok) throw new Error(data.error); 
+        if (!response.ok) {
+            displayException(data)
+            throw new Error(data.error); 
+        }
     } catch (error) {
         console.error({ error })
     }
@@ -64,20 +71,34 @@ const handleSubmit = async(event) => {
 
 const displayErrors = (data) => {
     const { error_list, file, total_errors } = data;
-    console.log(error_list);
-    let results; 
+    let html; 
 
     if (!total_errors) {
         document.querySelector('.modal-body').innerHTML = `<div>No errors reported!</div>`;
     } else {
-        results = `<div>Total Errors: ${total_errors}</div>`;
+        html = `<div>Total Errors: ${total_errors}</div>`;
         for (let error of error_list) {
-            results += `<div>at line <span>${error.line}</span>, column <span>${error.col}</span></div>`;
-            results += `<div>${error.error}</div>`;
+            html += `<div>at line <span>${error.line}</span>, column <span>${error.col}</span></div>`;
+            html += `<div>${error.error}</div>`;
         }
     }
 
     document.querySelector('.modal-title').innerText = `JSHint Results for ${file}`;
     document.querySelector('.modal-body').innerHTML = results;
     resultsModal.show();   
+}
+
+const displayException = (data) => {
+    const { error, error_no, status_code } = data;
+    
+    document.querySelector('.modal-title').innerText = 'An Exception Occurred';
+
+    let html = `
+        <div>Status Code: ${status_code}</div>
+        <div>Error Number: ${error_no}</div>
+        <div>Error: ${error}</div>
+    `; 
+
+    document.querySelector('.modal-body').innerHTML = html;
+    resultsModal.show();
 }
